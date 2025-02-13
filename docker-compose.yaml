@@ -82,6 +82,20 @@ services:
       - /home/def/Backup/Torrent/Porn:/Porn:z
     restart: unless-stopped
 
+  jellyseerr:
+    container_name: jellyseerr
+    image: ghcr.io/hotio/jellyseerr
+    network_mode: "service:gluetun"
+    depends_on:
+      - gluetun
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - UMASK=002
+      - TZ=Etc/UTC
+    volumes:
+      - /home/def/Data/Mega/Data/Code/default/config/jellyseer/config/:/config:Z
+
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:latest
     container_name: prowlarr
