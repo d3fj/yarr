@@ -9,8 +9,11 @@ services:
       - /dev/net/tun:/dev/net/tun
     environment:
       - VPN_SERVICE_PROVIDER=mullvad
-      - VPN_TYPE=openvpn
-      - SERVER_CITIES=Amsterdam,Berlin,Zurich
+      - VPN_TYPE=wireguard
+      - WIREGUARD_ADDRESSES=10.76.1.79/32
+      - SERVER_CITIES=Amsterdam
+    secrets:
+      - wireguard_private_key
     ports:
       - 8080:8080/tcp # qBittorrent
       - 8080:8080 # qBittorrent
@@ -28,10 +31,8 @@ services:
       - 6969:6969 # Whisparr
       - 5055:5055 # Jellyseerr
     volumes:
-      - /home/def/Data/Mega/Data/Code/default/config/gluetun/config:/config:Z
-    secrets:
-      - openvpn_user
-  
+      - ./config/gluetun/config:/config
+
   flaresolverr:
     # DockerHub mirror flaresolverr/flaresolverr:latest
     image: ghcr.io/flaresolverr/flaresolverr:latest
@@ -57,9 +58,9 @@ services:
     depends_on:
       - gluetun
     volumes:
-      - /home/def/Data/Mega/Data/Code/default/config/bazarr/config:/config:Z
-      - /home/def/Backup/Torrent/Peliculas:/Peliculas:z #optional
-      - /home/def/Backup/Torrent/Series:/Series:z #optional
+      - ./config/bazarr/config:/config
+      - /mnt/hgfs/Torrent/Peliculas:/Peliculas #optional
+      - /mnt/hgfs/Torrent/Series:/Series #optional
     restart: unless-stopped
 
   jellyfin:
@@ -76,10 +77,10 @@ services:
       - JELLYFIN_PublishedServerUrl=http://192.168.18.97 #optional
       - NVIDIA_VISIBLE_DEVICES=all
     volumes:
-      - /home/def/Data/Mega/Data/Code/default/config/jellyfin/config:/config:Z
-      - /home/def/Backup/Torrent/Series:/Series:z
-      - /home/def/Backup/Torrent/Peliculas:/Peliculas:z
-      - /home/def/Backup/Torrent/Porn:/Porn:z
+      - ./config/jellyfin/config:/config
+      - /mnt/hgfs/Torrent/Series:/Series
+      - /mnt/hgfs/Torrent/Peliculas:/Peliculas
+      - /mnt/hgfs/Torrent/Porn:/Porn
     restart: unless-stopped
 
   jellyseerr:
@@ -94,7 +95,7 @@ services:
       - UMASK=002
       - TZ=Etc/UTC
     volumes:
-      - /home/def/Data/Mega/Data/Code/default/config/jellyseer/config/:/config:Z
+      - ./config/jellyseer/config/:/config
 
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:latest
@@ -107,7 +108,7 @@ services:
     depends_on:
       - gluetun
     volumes:
-      - /home/def/Data/Mega/Data/Code/default/config/prowlarr/config:/config:Z
+      - ./config/prowlarr/config:/config
     restart: unless-stopped
 
   qbittorrent:
@@ -123,10 +124,10 @@ services:
     depends_on:
       - gluetun
     volumes:
-      - /home/def/Data/Mega/Data/Code/default/config/qbittorrent/config:/config:Z
-      - /home/def/Backup/Torrent/Peliculas:/Peliculas:z #optional
-      - /home/def/Backup/Torrent/Series:/Series:z #optional
-      - /home/def/Backup/Torrent/Porn:/Porn:z #optional
+      - ./config/qbittorrent/config:/config
+      - /mnt/hgfs/Torrent/Peliculas:/Peliculas #optional
+      - /mnt/hgfs/Torrent/Series:/Series #optional
+      - /mnt/hgfs/Torrent/Porn:/Porn #optional
     restart: unless-stopped
 
   radarr:
@@ -140,8 +141,8 @@ services:
     depends_on:
       - gluetun
     volumes:
-      - /home/def/Data/Mega/Data/Code/default/config/radarr/config:/config:Z
-      - /home/def/Backup/Torrent/Peliculas:/Peliculas:z #optional
+      - ./config/radarr/config:/config
+      - /mnt/hgfs/Torrent/Peliculas:/Peliculas #optional
     restart: unless-stopped
 
   sonarr:
@@ -155,8 +156,8 @@ services:
     depends_on:
       - gluetun
     volumes:
-      - /home/def/Data/Mega/Data/Code/default/config/sonarr/config:/config:Z
-      - /home/def/Backup/Torrent/Series:/Series:z #optional
+      - ./config/sonarr/config:/config
+      - /mnt/hgfs/Torrent/Series:/Series #optional
     restart: unless-stopped
 
   whisparr:
@@ -171,10 +172,10 @@ services:
     depends_on:
       - gluetun
     volumes:
-      - /home/def/Data/Mega/Data/Code/default/config/whisparr/config:/config:Z
-      - /home/def/Backup/Torrent/Porn:/Porn:z #optional
+      - ./config/whisparr/config:/config
+      - /mnt/hgfs/Torrent/Porn:/Porn #optional
     restart: unless-stopped
 
 secrets:
-  openvpn_user:
+  wireguard_private_key:
     file: ./config/gluetun/config/secrets.txt
