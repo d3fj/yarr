@@ -27,7 +27,7 @@ services:
       - 8096:8096 # Jellyfin
       - 8920:8920
       - 7359:7359/udp
-      - 1900:1900/udp
+      # - 1900:1900/udp
       - 6969:6969 # Whisparr
       - 5055:5055 # Jellyseerr
     volumes:
@@ -59,14 +59,14 @@ services:
       - gluetun
     volumes:
       - ./config/bazarr/config:/config
-      - /mnt/z/Torrent/Peliculas:/Peliculas #optional
-      - /mnt/z/Torrent/Series:/Series #optional
+      - /run/media/def/HDD/Torrent/Peliculas:/Peliculas #optional
+      - /run/media/def/HDD/Torrent/Series:/Series #optional
     restart: unless-stopped
 
   jellyfin:
     image: lscr.io/linuxserver/jellyfin:latest
     container_name: jellyfin
-    #runtime: nvidia
+    #runtime: nvidia # Only Linux
     network_mode: "service:gluetun"
     depends_on:
       - gluetun
@@ -78,9 +78,9 @@ services:
       - NVIDIA_VISIBLE_DEVICES=all
     volumes:
       - ./config/jellyfin/config:/config
-      - /mnt/z/Torrent/Series:/Series
-      - /mnt/z/Torrent/Peliculas:/Peliculas
-      - /mnt/z/Torrent/Porn:/Porn
+      - /run/media/def/HDD/Torrent/Series:/Series
+      - /run/media/def/HDD/Torrent/Peliculas:/Peliculas
+      - /run/media/def/HDD/Torrent/Torrent/Porn:/Porn
     restart: unless-stopped
 
   jellyseerr:
@@ -125,9 +125,9 @@ services:
       - gluetun
     volumes:
       - ./config/qbittorrent/config:/config
-      - /mnt/z/Torrent/Peliculas:/Peliculas #optional
-      - /mnt/z/Torrent/Series:/Series #optional
-      - /mnt/z/Torrent/Porn:/Porn #optional
+      - /run/media/def/HDD/Torrent/Peliculas:/Peliculas #optional
+      - /run/media/def/HDD/Torrent/Series:/Series #optional
+      - /run/media/def/HDD/Torrent/Porn:/Porn #optional
     restart: unless-stopped
 
   radarr:
@@ -142,7 +142,7 @@ services:
       - gluetun
     volumes:
       - ./config/radarr/config:/config
-      - /mnt/z/Torrent/Peliculas:/Peliculas #optional
+      - /run/media/def/HDD/Torrent/Peliculas:/Peliculas #optional
     restart: unless-stopped
 
   sonarr:
@@ -157,7 +157,7 @@ services:
       - gluetun
     volumes:
       - ./config/sonarr/config:/config
-      - /mnt/z/Torrent/Series:/Series #optional
+      - /run/media/def/HDD/Torrent/Series:/Series #optional
     restart: unless-stopped
 
   whisparr:
@@ -173,7 +173,7 @@ services:
       - gluetun
     volumes:
       - ./config/whisparr/config:/config
-      - /mnt/z/Torrent/Porn:/Porn #optional
+      - /run/media/def/HDD/Torrent/Porn:/Porn #optional
     restart: unless-stopped
 
 secrets:
