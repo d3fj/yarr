@@ -15,8 +15,8 @@ services:
     secrets:
       - wireguard_private_key
     ports:
-      - 8080:8080/tcp # qBittorrent
-      - 8080:8080 # qBittorrent
+      - 8081:8080/tcp # qBittorrent
+      - 8081:8080 # qBittorrent
       - 6881:6881
       - 6881:6881/udp
       - 7878:7878 # Radarr
@@ -58,15 +58,15 @@ services:
     depends_on:
       - gluetun
     volumes:
-      - ./config/bazarr/config:/config:z
-      - /Backup/Torrent/Peliculas:/Peliculas:Z #optional
-      - /Backup/Torrent/Series:/Series:Z #optional
+      - ./config/bazarr/config:/config
+      - /Backup/Torrent/Peliculas:/Peliculas #optional
+      - /Backup/Torrent/Series:/Series #optional
     restart: unless-stopped
 
   jellyfin:
     image: lscr.io/linuxserver/jellyfin:latest
     container_name: jellyfin
-    #runtime: nvidia # Only Linux
+    runtime: nvidia # Only Linux
     network_mode: "service:gluetun"
     depends_on:
       - gluetun
@@ -76,11 +76,17 @@ services:
       - TZ=Etc/UTC
       - JELLYFIN_PublishedServerUrl=http://192.168.18.97 #optional
       - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+    devices:
+      - /dev/nvidia0:/dev/nvidia0
+      - /dev/nvidiactl:/dev/nvidiactl
+      - /dev/nvidia-modeset:/dev/nvidia-modeset
+      - /dev/nvidia-uvm:/dev/nvidia-uvm
     volumes:
-      - ./config/jellyfin/config:/config:z
-      - /Backup/Torrent/Series:/Series:Z
-      - /Backup/Torrent/Peliculas:/Peliculas:Z
-      - /Backup/Torrent/Porn:/Porn:Z
+      - ./config/jellyfin/config:/config
+      - /Backup/Torrent/Series:/Series
+      - /Backup/Torrent/Peliculas:/Peliculas
+      - /Backup/Torrent/Porn:/Porn
     restart: unless-stopped
 
   jellyseerr:
@@ -95,7 +101,7 @@ services:
       - UMASK=002
       - TZ=Etc/UTC
     volumes:
-      - ./config/jellyseer/config/:/config:z
+      - ./config/jellyseer/config/:/config
 
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:latest
@@ -108,7 +114,7 @@ services:
     depends_on:
       - gluetun
     volumes:
-      - ./config/prowlarr/config:/config:z
+      - ./config/prowlarr/config:/config
     restart: unless-stopped
 
   qbittorrent:
@@ -124,10 +130,10 @@ services:
     depends_on:
       - gluetun
     volumes:
-      - ./config/qbittorrent/config:/config:z
-      - /Backup/Torrent/Peliculas:/Peliculas:Z #optional
-      - /Backup/Torrent/Series:/Series:Z #optional
-      - /Backup/Torrent/Porn:/Porn:Z #optional
+      - ./config/qbittorrent/config:/config
+      - /Backup/Torrent/Peliculas:/Peliculas #optional
+      - /Backup/Torrent/Series:/Series #optional
+      - /Backup/Torrent/Porn:/Porn #optional
     restart: unless-stopped
 
   radarr:
@@ -141,8 +147,8 @@ services:
     depends_on:
       - gluetun
     volumes:
-      - ./config/radarr/config:/config:z
-      - /Backup/Torrent/Peliculas:/Peliculas:Z #optional
+      - ./config/radarr/config:/config
+      - /Backup/Torrent/Peliculas:/Peliculas #optional
     restart: unless-stopped
 
   sonarr:
@@ -156,8 +162,8 @@ services:
     depends_on:
       - gluetun
     volumes:
-      - ./config/sonarr/config:/config:z
-      - /Backup/Torrent/Series:/Series:Z #optional
+      - ./config/sonarr/config:/config
+      - /Backup/Torrent/Series:/Series #optional
     restart: unless-stopped
 
   whisparr:
@@ -172,8 +178,8 @@ services:
     depends_on:
       - gluetun
     volumes:
-      - ./config/whisparr/config:/config:z
-      - /Backup/Torrent/Porn:/Porn:Z #optional
+      - ./config/whisparr/config:/config
+      - /Backup/Torrent/Porn:/Porn #optional
     restart: unless-stopped
 
 secrets:
