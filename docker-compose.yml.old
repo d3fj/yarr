@@ -1,0 +1,182 @@
+---
+services:
+  gluetun:
+    image: qmcgaw/gluetun
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    environment:
+      - VPN_SERVICE_PROVIDER=mullvad
+      - VPN_TYPE=wireguard
+      - WIREGUARD_ADDRESSES=10.65.170.140/32
+      - SERVER_CITIES=Zurich
+      - VPN_PRIVATE_SUBNETS=172.17.0.0/16
+      - NETWORK_ACL_LAN=192.168.1.0/24
+      - DOT=off
+    secrets:
+      - wireguard_private_key
+    ports:
+      - 8081:8080/tcp # qBittorrent
+      - 8081:8080 # qBittorrent
+      - 6881:6881
+      - 6881:6881/udp
+      - 7878:7878 # Radarr
+      - 9696:9696 # Prowlarr
+      - 8191:8191 # Flaresolver
+      - 8989:8989 # Sonarr
+      - 8089:8096 # Jellyfin
+      - 6767:6767 # Bazarr
+      - 8920:8920
+      - 7359:7359/udp
+      # - 1900:1900/udp
+      - 6969:6969 # Whisparr
+      - 5055:5055 # Jellyseerr
+    volumes:
+      - /Volumes/Backup/Code/yarr/config/gluetun/config:/config
+
+  flaresolverr:
+    # DockerHub mirror flaresolverr/flaresolverr:latest
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - LOG_HTML=${LOG_HTML:-false}
+      - CAPTCHA_SOLVER=${CAPTCHA_SOLVER:-none}
+      - TZ=Europe/London
+    network_mode: "service:gluetun"
+    depends_on:
+      - gluetun
+    restart: unless-stopped
+
+  bazarr:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: bazarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    network_mode: "service:gluetun"
+    depends_on:
+      - gluetun
+    volumes:
+      - /Volumes/Backup/Code/yarr/config/bazarr/config:/config
+      - /Volumes/Backup/Torrent/Peliculas:/Peliculas #optional
+      - /Volumes/Backup/Torrent/Series:/Series #optional
+    restart: unless-stopped
+
+  jellyfin:
+    image: lscr.io/linuxserver/jellyfin:latest
+    container_name: jellyfin
+    network_mode: "service:gluetun"
+    depends_on:
+      - gluetun
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      - JELLYFIN_PublishedServerUrl=http://192.168.18.95 #optional
+    volumes:
+      - /Volumes/Backup/Code/yarr/config/jellyfin/config:/config
+      - /Volumes/Backup/Torrent/Series:/Series
+      - /Volumes/Backup/Torrent/Peliculas:/Peliculas
+      - /Volumes/Backup/Torrent/Porn:/Porn
+    restart: unless-stopped
+
+  jellyseerr:
+    container_name: jellyseerr
+    image: ghcr.io/fallenbagel/jellyseerr:latest
+    network_mode: "service:gluetun"
+    depends_on:
+      - gluetun
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - UMASK=002
+      - TZ=Etc/UTC
+    volumes:
+      - /Volumes/Backup/Code/yarr/config/jellyseer/config/:/app/config
+
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    network_mode: "service:gluetun"
+    depends_on:
+      - gluetun
+    volumes:
+      - /Volumes/Backup/Code/yarr/config/prowlarr/config:/config
+    restart: unless-stopped
+
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      - WEBUI_PORT=8080
+      - TORRENTING_PORT=6881
+    network_mode: "service:gluetun"
+    depends_on:
+      - gluetun
+    volumes:
+      - /Volumes/Backup/Code/yarr/config/qbittorrent/config:/config
+      - /Volumes/Backup/Torrent/Peliculas:/Peliculas #optional
+      - /Volumes/Backup/Torrent/Series:/Series #optional
+      - /Volumes/Backup/Torrent/Porn:/Porn #optional
+    restart: unless-stopped
+
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    network_mode: "service:gluetun"
+    depends_on:
+      - gluetun
+    volumes:
+      - /Volumes/Backup/Code/yarr/config/radarr/config:/config
+      - /Volumes/Backup/Torrent/Peliculas:/Peliculas #optional
+    restart: unless-stopped
+
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    network_mode: "service:gluetun"
+    depends_on:
+      - gluetun
+    volumes:
+      - /Volumes/Backup/Code/yarr/config/sonarr/config:/config
+      - /Volumes/Backup/Torrent/Series:/Series #optional
+    restart: unless-stopped
+
+  whisparr:
+    container_name: whisparr
+    image: ghcr.io/hotio/whisparr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - UMASK=002
+      - TZ=Etc/UTC
+    network_mode: "service:gluetun"
+    depends_on:
+      - gluetun
+    volumes:
+      - /Volumes/Backup/Code/yarr/config/whisparr/config:/config
+      - /Volumes/Backup/Torrent/Porn:/Porn #optional
+    restart: unless-stopped
+
+secrets:
+  wireguard_private_key:
+    file: /Volumes/Backup/Code/yarr/config/gluetun/config/secrets.txt
