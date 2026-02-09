@@ -35,6 +35,8 @@ services:
             # - 1900:1900/udp
             - 6969:6969 # Whisparr
             - 5055:5055 # Jellyseerr
+            - 8686:8686 # Lidarr
+            - 5030:5030 # Slskd Web UI
         volumes:
             - ./config/gluetun/config:/config
 
@@ -64,8 +66,7 @@ services:
             - gluetun
         volumes:
             - ./config/bazarr/config:/config
-            - ./Torrent/Peliculas:/Peliculas #optional
-            - ./Torrent/Series:/Series #optional
+            - ./Torrent:/data #optional
         restart: unless-stopped
 
     jellyseerr:
@@ -110,9 +111,7 @@ services:
             - gluetun
         volumes:
             - ./config/qbittorrent/config:/config
-            - ./Torrent/Peliculas:/Peliculas #optional
-            - ./Torrent/Series:/Series #optional
-            - ./Torrent/Porn:/Porn #optional
+            - ./Torrent:/data #optional
         restart: unless-stopped
 
     radarr:
@@ -127,7 +126,7 @@ services:
             - gluetun
         volumes:
             - ./config/radarr/config:/config
-            - ./Torrent/Peliculas:/Peliculas #optional
+            - ./Torrent:/data #optional
         restart: unless-stopped
 
     sonarr:
@@ -142,7 +141,7 @@ services:
             - gluetun
         volumes:
             - ./config/sonarr/config:/config
-            - ./Torrent/Series:/Series #optional
+            - ./Torrent:/data #optional
         restart: unless-stopped
 
     whisparr:
@@ -158,7 +157,54 @@ services:
             - gluetun
         volumes:
             - ./config/whisparr/config:/config
-            - ./Torrent/Porn:/Porn #optional
+            - ./Torrent:/data #optional
+        restart: unless-stopped
+
+    lidarr:
+        image: lscr.io/linuxserver/lidarr:latest
+        container_name: lidarr
+        environment:
+            - PUID=1000
+            - PGID=1000
+            - TZ=Etc/UTC
+        network_mode: "service:gluetun"
+        depends_on:
+            - gluetun
+        volumes:
+            - ./config/lidarr/config:/config
+            - ./Torrent:/data
+        restart: unless-stopped
+
+    slskd:
+        image: slskd/slskd:latest
+        container_name: slskd
+        environment:
+            - SLSKD_WEB__PORT=5030
+            - SLSKD_WEB__URL_BASE=/
+            - PUID=1000
+            - PGID=1000
+            - TZ=Europe/Madrid
+        network_mode: "service:gluetun"
+        depends_on:
+            - gluetun
+        volumes:
+            - ./config/slskd:/app/data
+            - ./config/slskd/slskd.yml:/app/slskd.yml:ro
+            - ./Torrent:/storage
+        restart: unless-stopped
+
+    soularr:
+        image: mrusse08/soularr:latest
+        container_name: soularr
+        network_mode: "service:gluetun"
+        depends_on:
+            - gluetun
+            - slskd
+            - lidarr
+        environment:
+            - TZ=Europe/Madrid
+        volumes:
+            - ./config/soularr:/data
         restart: unless-stopped
 
 secrets:
